@@ -1,0 +1,157 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, ui-monospace, monospace;
+
+  /* Base surfaces — deep cool grays, near-black */
+  --color-ink-950: #07090d;
+  --color-ink-900: #0b0e14;
+  --color-ink-850: #10141d;
+  --color-ink-800: #141926;
+  --color-ink-750: #1a2030;
+  --color-ink-700: #212939;
+  --color-ink-600: #2c3547;
+
+  /* Text */
+  --color-fog-100: #e8edf4;
+  --color-fog-200: #ccd4e0;
+  --color-fog-300: #aab4c4;
+  --color-fog-400: #8d99ad;
+  --color-fog-500: #76839a;
+  --color-fog-600: #566177;
+
+  /* Semantic */
+  --color-signal-400: #2dd4bf; /* teal — interactive, trusted */
+  --color-signal-500: #14b8a6;
+  --color-signal-800: #0f5a50; /* deep teal surface for primary buttons on dark panels */
+  --color-signal-900: #0f2e2a;
+  --color-amber-450: #f5a623; /* risk, insufficient evidence */
+  --color-danger-450: #f0564e; /* contradiction, error, negative */
+  --color-info-400: #6aa6f8;
+  --color-positive-400: #3ddc97;
+
+  --radius-panel: 10px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-ink-950 text-fog-100 font-sans antialiased;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  ::selection {
+    @apply bg-signal-500/30;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-700);
+    border-radius: 5px;
+    border: 2px solid var(--color-ink-950);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-600);
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-panel border border-ink-700/70 bg-ink-850;
+  }
+
+  .panel-hover {
+    @apply transition-colors duration-150 hover:border-ink-600 hover:bg-ink-800;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
+      transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-signal-400/60
+      disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
+      transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-signal-400/60
+      disabled:cursor-not-allowed disabled:opacity-40
+      bg-signal-500 text-ink-950 hover:bg-signal-400;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
+      transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-signal-400/60
+      disabled:cursor-not-allowed disabled:opacity-40
+      border border-ink-700 text-fog-300 hover:border-ink-600 hover:text-fog-100;
+  }
+
+  .input-base {
+    @apply w-full rounded-md border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-fog-100
+      placeholder:text-fog-600 outline-none transition-colors duration-150
+      focus:border-signal-500/70 focus:ring-1 focus:ring-signal-500/40;
+  }
+
+  .label-caps {
+    @apply text-[11px] font-semibold tracking-[0.14em] uppercase text-fog-500;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@utility skeleton-shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--color-ink-800) 40%,
+    var(--color-ink-750) 50%,
+    var(--color-ink-800) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.22s ease-out;
+}
+
+@keyframes fade-up {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.25s ease-out;
+}

@@ -1,0 +1,1987 @@
+{
+  "$defs": {
+    "Claim": {
+      "properties": {
+        "claim_id": {
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "verification_status": {
+          "enum": [
+            "supported",
+            "contradicted",
+            "insufficient"
+          ],
+          "title": "Verification Status",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "company_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Id"
+        },
+        "metric_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Name"
+        },
+        "numeric_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Numeric Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "period_end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period End"
+        },
+        "period_start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Start"
+        },
+        "accounting_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accounting Basis"
+        },
+        "actual_or_guidance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual Or Guidance"
+        },
+        "capex_scope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capex Scope"
+        },
+        "claim_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "disclosed_fact",
+                "calculation",
+                "analysis",
+                "scenario",
+                "evidence_gap"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim Type"
+        }
+      },
+      "required": [
+        "claim_id",
+        "text",
+        "verification_status",
+        "evidence_ids"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "Company": {
+      "properties": {
+        "company_id": {
+          "title": "Company Id",
+          "type": "string"
+        },
+        "company_name": {
+          "title": "Company Name",
+          "type": "string"
+        },
+        "ticker": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ticker"
+        },
+        "exchange": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange"
+        },
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Country"
+        },
+        "cik": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cik"
+        },
+        "resolution_status": {
+          "enum": [
+            "resolved",
+            "ambiguous",
+            "unverified"
+          ],
+          "title": "Resolution Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "company_id",
+        "company_name",
+        "resolution_status"
+      ],
+      "title": "Company",
+      "type": "object"
+    },
+    "InvestmentAnalysis": {
+      "properties": {
+        "stance": {
+          "enum": [
+            "bullish",
+            "cautiously_bullish",
+            "bearish",
+            "cautiously_bearish",
+            "neutral",
+            "provisional_neutral",
+            "insufficient"
+          ],
+          "title": "Stance",
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/InvestmentPoint"
+          },
+          "maxItems": 16,
+          "title": "Points",
+          "type": "array"
+        },
+        "missing_inputs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Missing Inputs",
+          "type": "array"
+        },
+        "narrative": {
+          "anyOf": [
+            {
+              "maxLength": 10000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Narrative"
+        },
+        "evidence_coverage": {
+          "anyOf": [
+            {
+              "enum": [
+                "financial_and_external",
+                "financial_only",
+                "limited"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Coverage"
+        },
+        "observation_reason": {
+          "anyOf": [
+            {
+              "maxLength": 700,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Reason"
+        }
+      },
+      "required": [
+        "stance",
+        "confidence",
+        "points",
+        "missing_inputs"
+      ],
+      "title": "InvestmentAnalysis",
+      "type": "object"
+    },
+    "InvestmentNarrative": {
+      "properties": {
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/InvestmentNarrativeSection"
+          },
+          "title": "Sections",
+          "type": "array"
+        },
+        "language": {
+          "default": "en",
+          "enum": [
+            "en",
+            "zh"
+          ],
+          "title": "Language",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sections"
+      ],
+      "title": "InvestmentNarrative",
+      "type": "object"
+    },
+    "InvestmentNarrativeSection": {
+      "properties": {
+        "topic": {
+          "enum": [
+            "thesis",
+            "outlook",
+            "financial_quality",
+            "valuation",
+            "bull_case",
+            "base_case",
+            "bear_case",
+            "risk",
+            "catalyst",
+            "counterargument",
+            "invalidation",
+            "operating_state",
+            "market_expectations",
+            "supporting_case",
+            "opposing_case",
+            "tradeoff",
+            "key_factor",
+            "horizon"
+          ],
+          "title": "Topic",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 900,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "review_verdict": {
+          "default": "pending",
+          "title": "Review Verdict",
+          "type": "string"
+        },
+        "review_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Reason"
+        },
+        "suggested_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Suggested Revision"
+        }
+      },
+      "required": [
+        "topic",
+        "text",
+        "evidence_ids"
+      ],
+      "title": "InvestmentNarrativeSection",
+      "type": "object"
+    },
+    "InvestmentPoint": {
+      "properties": {
+        "topic": {
+          "enum": [
+            "thesis",
+            "outlook",
+            "financial_quality",
+            "valuation",
+            "bull_case",
+            "base_case",
+            "bear_case",
+            "risk",
+            "catalyst",
+            "counterargument",
+            "invalidation",
+            "operating_state",
+            "market_expectations",
+            "supporting_case",
+            "opposing_case",
+            "tradeoff",
+            "key_factor",
+            "horizon"
+          ],
+          "title": "Topic",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 900,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "topic",
+        "text",
+        "evidence_ids"
+      ],
+      "title": "InvestmentPoint",
+      "type": "object"
+    },
+    "InvestmentReviewStatus": {
+      "properties": {
+        "generation": {
+          "enum": [
+            "generation_completed",
+            "generation_partial",
+            "generation_failed"
+          ],
+          "title": "Generation",
+          "type": "string"
+        },
+        "review": {
+          "enum": [
+            "review_pending",
+            "review_running",
+            "review_completed",
+            "review_partial",
+            "review_failed_technical",
+            "review_blocked"
+          ],
+          "title": "Review",
+          "type": "string"
+        },
+        "opinion": {
+          "enum": [
+            "provisional",
+            "approved",
+            "evidence_insufficient"
+          ],
+          "title": "Opinion",
+          "type": "string"
+        },
+        "verdicts": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Verdicts",
+          "type": "object"
+        },
+        "reasons": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "object"
+        },
+        "suggested_revisions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Suggested Revisions",
+          "type": "object"
+        },
+        "batch_status": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Batch Status",
+          "type": "object"
+        }
+      },
+      "required": [
+        "generation",
+        "review",
+        "opinion"
+      ],
+      "title": "InvestmentReviewStatus",
+      "type": "object"
+    },
+    "IssuerValuation": {
+      "properties": {
+        "company_id": {
+          "title": "Company Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "partial",
+            "data_insufficient",
+            "not_executed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "trade_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trade Date"
+        },
+        "price_source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price Source Id"
+        },
+        "measures": {
+          "items": {
+            "$ref": "#/$defs/ValuationMeasure"
+          },
+          "title": "Measures",
+          "type": "array"
+        },
+        "missing": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing",
+          "type": "array"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "qualitative": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Qualitative"
+        },
+        "qualitative_evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Qualitative Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "company_id",
+        "status"
+      ],
+      "title": "IssuerValuation",
+      "type": "object"
+    },
+    "Metric": {
+      "properties": {
+        "metric_id": {
+          "title": "Metric Id",
+          "type": "string"
+        },
+        "company_id": {
+          "title": "Company Id",
+          "type": "string"
+        },
+        "metric_name": {
+          "title": "Metric Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "period_start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Start"
+        },
+        "period_end": {
+          "title": "Period End",
+          "type": "string"
+        },
+        "fiscal_period": {
+          "title": "Fiscal Period",
+          "type": "string"
+        },
+        "accounting_basis": {
+          "title": "Accounting Basis",
+          "type": "string"
+        },
+        "actual_or_guidance": {
+          "enum": [
+            "actual",
+            "guidance",
+            "analyst_estimate",
+            "model_inference"
+          ],
+          "title": "Actual Or Guidance",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "capex_scope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capex Scope"
+        },
+        "duration_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "quarter",
+                "ytd",
+                "year"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Kind"
+        },
+        "calculation_method": {
+          "anyOf": [
+            {
+              "enum": [
+                "quarter_difference",
+                "operating_cash_flow_less_capex",
+                "growth"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calculation Method"
+        }
+      },
+      "required": [
+        "metric_id",
+        "company_id",
+        "metric_name",
+        "value",
+        "unit",
+        "period_end",
+        "fiscal_period",
+        "accounting_basis",
+        "actual_or_guidance",
+        "evidence_ids"
+      ],
+      "title": "Metric",
+      "type": "object"
+    },
+    "NewsAnalysis": {
+      "properties": {
+        "generation_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "news_collected",
+                "news_analysis_completed",
+                "synthesis_completed",
+                "generation_truncated",
+                "generation_failed",
+                "budget_unavailable",
+                "evidence_insufficient"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation Status"
+        },
+        "failed_stage": {
+          "anyOf": [
+            {
+              "enum": [
+                "analysis",
+                "article"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failed Stage"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "partial",
+            "search_failed",
+            "no_results",
+            "not_executed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "overall_assessment": {
+          "default": "insufficient",
+          "enum": [
+            "positive",
+            "neutral",
+            "cautious",
+            "mixed",
+            "insufficient"
+          ],
+          "title": "Overall Assessment",
+          "type": "string"
+        },
+        "confidence": {
+          "default": "low",
+          "enum": [
+            "low",
+            "medium"
+          ],
+          "title": "Confidence",
+          "type": "string"
+        },
+        "as_of": {
+          "title": "As Of",
+          "type": "string"
+        },
+        "news_items": {
+          "items": {
+            "$ref": "#/$defs/NewsItem"
+          },
+          "title": "News Items",
+          "type": "array"
+        },
+        "insights": {
+          "items": {
+            "$ref": "#/$defs/NewsInsight"
+          },
+          "title": "Insights",
+          "type": "array"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "as_of"
+      ],
+      "title": "NewsAnalysis",
+      "type": "object"
+    },
+    "NewsInsight": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "positive",
+            "negative",
+            "cross_news",
+            "business",
+            "financial",
+            "market_expectations",
+            "synthesis"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 1600,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "text",
+        "evidence_ids"
+      ],
+      "title": "NewsInsight",
+      "type": "object"
+    },
+    "NewsItem": {
+      "properties": {
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "operations_strategy",
+            "earnings",
+            "products_technology",
+            "industry",
+            "competition",
+            "analyst_views",
+            "macro",
+            "policy_regulation",
+            "geopolitics",
+            "other"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Excerpt"
+        },
+        "attribution": {
+          "enum": [
+            "management_statement",
+            "analyst_view",
+            "reported_event",
+            "unclassified"
+          ],
+          "title": "Attribution",
+          "type": "string"
+        },
+        "publication_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Date"
+        },
+        "publication_basis": {
+          "default": "unknown",
+          "enum": [
+            "publisher_metadata",
+            "search_metadata",
+            "unknown"
+          ],
+          "title": "Publication Basis",
+          "type": "string"
+        },
+        "event_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Date"
+        },
+        "publisher_excerpt_matched": {
+          "default": false,
+          "title": "Publisher Excerpt Matched",
+          "type": "boolean"
+        },
+        "related_source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Related Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_id",
+        "category",
+        "summary",
+        "attribution"
+      ],
+      "title": "NewsItem",
+      "type": "object"
+    },
+    "ProviderActivity": {
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "calls": {
+          "default": 0,
+          "title": "Calls",
+          "type": "integer"
+        },
+        "succeeded": {
+          "default": 0,
+          "title": "Succeeded",
+          "type": "integer"
+        },
+        "failed": {
+          "default": 0,
+          "title": "Failed",
+          "type": "integer"
+        },
+        "mock_used": {
+          "default": false,
+          "title": "Mock Used",
+          "type": "boolean"
+        },
+        "http_attempts": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Http Attempts"
+        },
+        "http_responses": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Http Responses"
+        }
+      },
+      "title": "ProviderActivity",
+      "type": "object"
+    },
+    "ProviderEvent": {
+      "properties": {
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "elapsed_ms": {
+          "default": 0,
+          "title": "Elapsed Ms",
+          "type": "integer"
+        },
+        "http_attempts": {
+          "default": 0,
+          "title": "Http Attempts",
+          "type": "integer"
+        },
+        "http_responses": {
+          "default": 0,
+          "title": "Http Responses",
+          "type": "integer"
+        },
+        "outcome": {
+          "default": "succeeded",
+          "enum": [
+            "succeeded",
+            "failed"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "company_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Id"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Topic"
+        },
+        "result_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result Count"
+        },
+        "usable_results": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Usable Results"
+        },
+        "adopted_source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Adopted Source Ids",
+          "type": "array"
+        },
+        "news_context_source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "News Context Source Ids",
+          "type": "array"
+        },
+        "news_selected_source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "News Selected Source Ids",
+          "type": "array"
+        },
+        "news_cited_source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "News Cited Source Ids",
+          "type": "array"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "prompt_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Tokens"
+        },
+        "completion_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Completion Tokens"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "finish_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Finish Reason"
+        },
+        "http_status": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Http Status"
+        },
+        "max_output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Output Tokens"
+        },
+        "batch_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Batch Id"
+        },
+        "retry_wait_seconds": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry Wait Seconds"
+        },
+        "filing_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Filing Types",
+          "type": "array"
+        },
+        "filings_retrieved": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filings Retrieved"
+        },
+        "filings_parsed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filings Parsed"
+        },
+        "filing_parse_failures": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filing Parse Failures"
+        },
+        "parsed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parsed"
+        },
+        "extracted": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extracted"
+        },
+        "verified": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Verified"
+        }
+      },
+      "required": [
+        "provider",
+        "stage"
+      ],
+      "title": "ProviderEvent",
+      "type": "object"
+    },
+    "ResearchQuality": {
+      "properties": {
+        "core_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Core Gaps",
+          "type": "array"
+        },
+        "supplemental_gaps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supplemental Gaps",
+          "type": "array"
+        },
+        "historical_conflicts": {
+          "default": 0,
+          "title": "Historical Conflicts",
+          "type": "integer"
+        }
+      },
+      "title": "ResearchQuality",
+      "type": "object"
+    },
+    "Source": {
+      "properties": {
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "publisher": {
+          "title": "Publisher",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "publication_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Date"
+        },
+        "retrieved_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retrieved At"
+        },
+        "source_type": {
+          "title": "Source Type",
+          "type": "string"
+        },
+        "quoted_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quoted Text"
+        },
+        "company_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Company Id"
+        },
+        "metric_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric Name"
+        },
+        "numeric_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Numeric Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "period_end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period End"
+        },
+        "structured_locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Structured Locator"
+        },
+        "issuer_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Issuer Name"
+        },
+        "period_start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Start"
+        },
+        "accounting_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accounting Basis"
+        },
+        "actual_or_guidance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual Or Guidance"
+        },
+        "capex_scope": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capex Scope"
+        },
+        "financial_concept": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Financial Concept"
+        },
+        "xbrl_tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Xbrl Tag"
+        },
+        "tag_definition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tag Definition"
+        },
+        "original_numeric_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Numeric Value"
+        }
+      },
+      "required": [
+        "source_id",
+        "title",
+        "publisher",
+        "url",
+        "source_type"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "ValuationMeasure": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "formula": {
+          "title": "Formula",
+          "type": "string"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Inputs",
+          "type": "object"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "basis": {
+          "enum": [
+            "trailing_actual",
+            "fiscal_year_actual",
+            "instant_actual",
+            "forward_estimate"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "period_end": {
+          "title": "Period End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "unit",
+        "formula",
+        "inputs",
+        "evidence_ids",
+        "basis",
+        "period_end"
+      ],
+      "title": "ValuationMeasure",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "report_id": {
+      "title": "Report Id",
+      "type": "string"
+    },
+    "task_id": {
+      "title": "Task Id",
+      "type": "string"
+    },
+    "query": {
+      "title": "Query",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "data_as_of": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Data As Of"
+    },
+    "data_mode": {
+      "enum": [
+        "mock",
+        "live",
+        "mixed",
+        "unverified"
+      ],
+      "title": "Data Mode",
+      "type": "string"
+    },
+    "providers": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ProviderActivity"
+      },
+      "title": "Providers",
+      "type": "object"
+    },
+    "companies": {
+      "items": {
+        "$ref": "#/$defs/Company"
+      },
+      "title": "Companies",
+      "type": "array"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/Metric"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/Source"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "input_report_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Input Report Ids",
+      "type": "array"
+    },
+    "investment_analysis": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InvestmentAnalysis"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "valuation_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "completed",
+            "partial",
+            "data_insufficient",
+            "not_executed"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valuation Status"
+    },
+    "valuations": {
+      "items": {
+        "$ref": "#/$defs/IssuerValuation"
+      },
+      "title": "Valuations",
+      "type": "array"
+    },
+    "news_analysis": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NewsAnalysis"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "research_quality": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResearchQuality"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "investment_narrative": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InvestmentNarrative"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "investment_draft": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InvestmentAnalysis"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "investment_review": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InvestmentReviewStatus"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "provider_events": {
+      "items": {
+        "$ref": "#/$defs/ProviderEvent"
+      },
+      "title": "Provider Events",
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "researching",
+        "verifying",
+        "completed",
+        "partial",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "report_id",
+    "task_id",
+    "query",
+    "generated_at",
+    "data_mode",
+    "companies",
+    "metrics",
+    "claims",
+    "sources",
+    "limitations",
+    "status"
+  ],
+  "title": "Report",
+  "type": "object"
+}

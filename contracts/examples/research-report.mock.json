@@ -1,0 +1,132 @@
+{
+  "report_id": "mock-report-001",
+  "task_id": "mock-task-001",
+  "query": "Compare Microsoft, Alphabet, Amazon and Meta AI investment",
+  "generated_at": "2026-11-14T00:00:00Z",
+  "data_as_of": null,
+  "data_mode": "mock",
+  "companies": [
+    {
+      "company_id": "microsoft",
+      "company_name": "Microsoft",
+      "ticker": null,
+      "exchange": null,
+      "country": null,
+      "cik": null,
+      "resolution_status": "unverified"
+    },
+    {
+      "company_id": "alphabet",
+      "company_name": "Alphabet",
+      "ticker": null,
+      "exchange": null,
+      "country": null,
+      "cik": null,
+      "resolution_status": "unverified"
+    },
+    {
+      "company_id": "amazon",
+      "company_name": "Amazon",
+      "ticker": null,
+      "exchange": null,
+      "country": null,
+      "cik": null,
+      "resolution_status": "unverified"
+    },
+    {
+      "company_id": "meta",
+      "company_name": "Meta",
+      "ticker": null,
+      "exchange": null,
+      "country": null,
+      "cik": null,
+      "resolution_status": "unverified"
+    }
+  ],
+  "metrics": [
+    {
+      "metric_id": "mock-capex-0",
+      "company_id": "microsoft",
+      "metric_name": "synthetic_cash_capex",
+      "value": 100.0,
+      "currency": "USD",
+      "unit": "millions",
+      "period_start": "2025-01-01",
+      "period_end": "2025-03-31",
+      "fiscal_period": "2025-Q1",
+      "accounting_basis": "synthetic mock",
+      "actual_or_guidance": "model_inference",
+      "evidence_ids": []
+    },
+    {
+      "metric_id": "mock-capex-1",
+      "company_id": "alphabet",
+      "metric_name": "synthetic_cash_capex",
+      "value": 120.0,
+      "currency": "USD",
+      "unit": "millions",
+      "period_start": "2025-01-01",
+      "period_end": "2025-03-31",
+      "fiscal_period": "2025-Q1",
+      "accounting_basis": "synthetic mock",
+      "actual_or_guidance": "model_inference",
+      "evidence_ids": []
+    },
+    {
+      "metric_id": "mock-capex-2",
+      "company_id": "amazon",
+      "metric_name": "synthetic_cash_capex",
+      "value": 140.0,
+      "currency": "USD",
+      "unit": "millions",
+      "period_start": "2025-01-01",
+      "period_end": "2025-03-31",
+      "fiscal_period": "2025-Q1",
+      "accounting_basis": "synthetic mock",
+      "actual_or_guidance": "model_inference",
+      "evidence_ids": []
+    },
+    {
+      "metric_id": "mock-capex-3",
+      "company_id": "meta",
+      "metric_name": "synthetic_cash_capex",
+      "value": 160.0,
+      "currency": "USD",
+      "unit": "millions",
+      "period_start": "2025-01-01",
+      "period_end": "2025-03-31",
+      "fiscal_period": "2025-Q1",
+      "accounting_basis": "synthetic mock",
+      "actual_or_guidance": "model_inference",
+      "evidence_ids": []
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "mock-claim-001",
+      "text": "Illustrative comparison only",
+      "verification_status": "insufficient",
+      "evidence_ids": [],
+      "limitations": [
+        "Synthetic values have no supporting financial source."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "mock-source-001",
+      "title": "Synthetic mock marker",
+      "publisher": "Development fixture",
+      "url": "https://example.invalid/mock",
+      "publication_date": null,
+      "retrieved_at": null,
+      "source_type": "mock",
+      "quoted_text": null
+    }
+  ],
+  "limitations": [
+    "All figures are fictional test values, not company disclosures or investment research.",
+    "No financial values or external evidence were retrieved."
+  ],
+  "status": "partial"
+}

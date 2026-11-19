@@ -1,0 +1,11 @@
+# SEC CapEx fixture provenance
+
+The fixtures freeze selected facts from SEC Company Facts and selected inline or rendered rows from EDGAR filings. The research cutoff is 2026-11-19. The Company Facts snapshots keep unchanged fact values, units, periods, filing dates and accessions for MSFT, GOOGL, AMZN, META, NVDA, JPM, TSM, TM, BABA and SHEL. They are deliberately reduced to the concepts and periods required by the tests.
+
+SEC Company Facts aggregates standardized entity-wide facts. The filing samples supplement its coverage of issuer extensions, annual filings missing from the feed, and financial exhibits without inline tags. Exhibit fragments preserve the reviewed statement headings, row labels, column order, signs and values. Inline fragments retain the original namespaces, contexts, units and numeric facts. These fragments are not complete filings.
+
+Use [the SEC API documentation](https://www.sec.gov/search-filings/edgar-application-programming-interfaces), [the FASB taxonomy documentation](https://xbrl.fasb.org/us-gaap/2025/elts/) and the exact EDGAR URLs in the reviewed filing registry to verify the underlying sources. The standard cash flow tag for 'other' property and equipment and the 'other' productive asset tag do not prove a consolidated total. The capital improvements tag can include acquisitions of investment or in-use properties and also does not establish total consolidated CapEx. Unpaid CapEx and stand-alone intangible purchases are excluded.
+
+The tested FCF is Seldon's operating cash flow less the matching cash investment measure. NVIDIA's published non-GAAP FCF subtracts additional principal payments, and Shell's published cash capital expenditure and FCF use different definitions. Toyota's registered investing CapEx excludes equipment leased to others. Alibaba's June 2026 exhibit row excludes land-use rights and campus construction, while its annual cash flow extension includes land-use rights.
+
+The NVIDIA Q3 FY2027, Toyota FY2027 first-half, Alibaba June 2026, and Shell Q3 2026 fragments also retain the consolidated income-statement revenue row. These are SEC exhibit values in USD, JPY, CNY and USD respectively. The Alibaba convenience translation is present in the frozen row but excluded from the revenue series.

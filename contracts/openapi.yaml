@@ -1,0 +1,2632 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SELDON SYSTEM",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderHealth"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies": {
+      "get": {
+        "summary": "Companies",
+        "operationId": "companies_api_companies_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/research": {
+      "post": {
+        "summary": "Create Research",
+        "operationId": "create_research_api_research_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/research/{task_id}": {
+      "get": {
+        "summary": "Get Research",
+        "operationId": "get_research_api_research__task_id__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchTaskStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/{report_id}": {
+      "get": {
+        "summary": "Get Report",
+        "operationId": "get_report_api_reports__report_id__get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "summary": "Get Settings",
+        "operationId": "get_settings_api_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Settings",
+        "operationId": "update_settings_api_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings/connections": {
+      "post": {
+        "summary": "Test Connections",
+        "operationId": "test_connections_api_settings_connections_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionDiagnostics"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Claim": {
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "title": "Claim Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "verification_status": {
+            "type": "string",
+            "enum": [
+              "supported",
+              "contradicted",
+              "insufficient"
+            ],
+            "title": "Verification Status"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          },
+          "metric_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Name"
+          },
+          "numeric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "accounting_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accounting Basis"
+          },
+          "actual_or_guidance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Or Guidance"
+          },
+          "capex_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capex Scope"
+          },
+          "claim_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "disclosed_fact",
+                  "calculation",
+                  "analysis",
+                  "scenario",
+                  "evidence_gap"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "claim_id",
+          "text",
+          "verification_status",
+          "evidence_ids"
+        ],
+        "title": "Claim"
+      },
+      "Company": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticker"
+          },
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "cik": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cik"
+          },
+          "resolution_status": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "ambiguous",
+              "unverified"
+            ],
+            "title": "Resolution Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company_id",
+          "company_name",
+          "resolution_status"
+        ],
+        "title": "Company"
+      },
+      "ConnectionDiagnostics": {
+        "properties": {
+          "transport": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Transport"
+          },
+          "checks": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "not_configured",
+                "reachable",
+                "unavailable"
+              ]
+            },
+            "type": "object",
+            "title": "Checks"
+          },
+          "provider_authentication": {
+            "type": "string",
+            "const": "untested",
+            "title": "Provider Authentication"
+          },
+          "research_ready": {
+            "type": "boolean",
+            "const": false,
+            "title": "Research Ready"
+          },
+          "paid_request_made": {
+            "type": "boolean",
+            "const": false,
+            "title": "Paid Request Made"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transport",
+          "checks",
+          "provider_authentication",
+          "research_ready",
+          "paid_request_made"
+        ],
+        "title": "ConnectionDiagnostics"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InvestmentAnalysis": {
+        "properties": {
+          "stance": {
+            "type": "string",
+            "enum": [
+              "bullish",
+              "cautiously_bullish",
+              "bearish",
+              "cautiously_bearish",
+              "neutral",
+              "provisional_neutral",
+              "insufficient"
+            ],
+            "title": "Stance"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/InvestmentPoint"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "title": "Points"
+          },
+          "missing_inputs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Missing Inputs"
+          },
+          "narrative": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Narrative"
+          },
+          "evidence_coverage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "financial_and_external",
+                  "financial_only",
+                  "limited"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Coverage"
+          },
+          "observation_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 700
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stance",
+          "confidence",
+          "points",
+          "missing_inputs"
+        ],
+        "title": "InvestmentAnalysis"
+      },
+      "InvestmentNarrative": {
+        "properties": {
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/InvestmentNarrativeSection"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "zh"
+            ],
+            "title": "Language",
+            "default": "en"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sections"
+        ],
+        "title": "InvestmentNarrative"
+      },
+      "InvestmentNarrativeSection": {
+        "properties": {
+          "topic": {
+            "type": "string",
+            "enum": [
+              "thesis",
+              "outlook",
+              "financial_quality",
+              "valuation",
+              "bull_case",
+              "base_case",
+              "bear_case",
+              "risk",
+              "catalyst",
+              "counterargument",
+              "invalidation",
+              "operating_state",
+              "market_expectations",
+              "supporting_case",
+              "opposing_case",
+              "tradeoff",
+              "key_factor",
+              "horizon"
+            ],
+            "title": "Topic"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 900,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Evidence Ids"
+          },
+          "review_verdict": {
+            "type": "string",
+            "title": "Review Verdict",
+            "default": "pending"
+          },
+          "review_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Reason"
+          },
+          "suggested_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic",
+          "text",
+          "evidence_ids"
+        ],
+        "title": "InvestmentNarrativeSection"
+      },
+      "InvestmentPoint": {
+        "properties": {
+          "topic": {
+            "type": "string",
+            "enum": [
+              "thesis",
+              "outlook",
+              "financial_quality",
+              "valuation",
+              "bull_case",
+              "base_case",
+              "bear_case",
+              "risk",
+              "catalyst",
+              "counterargument",
+              "invalidation",
+              "operating_state",
+              "market_expectations",
+              "supporting_case",
+              "opposing_case",
+              "tradeoff",
+              "key_factor",
+              "horizon"
+            ],
+            "title": "Topic"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 900,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Evidence Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic",
+          "text",
+          "evidence_ids"
+        ],
+        "title": "InvestmentPoint"
+      },
+      "InvestmentReviewStatus": {
+        "properties": {
+          "generation": {
+            "type": "string",
+            "enum": [
+              "generation_completed",
+              "generation_partial",
+              "generation_failed"
+            ],
+            "title": "Generation"
+          },
+          "review": {
+            "type": "string",
+            "enum": [
+              "review_pending",
+              "review_running",
+              "review_completed",
+              "review_partial",
+              "review_failed_technical",
+              "review_blocked"
+            ],
+            "title": "Review"
+          },
+          "opinion": {
+            "type": "string",
+            "enum": [
+              "provisional",
+              "approved",
+              "evidence_insufficient"
+            ],
+            "title": "Opinion"
+          },
+          "verdicts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Verdicts"
+          },
+          "reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Reasons"
+          },
+          "suggested_revisions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Suggested Revisions"
+          },
+          "batch_status": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Batch Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "generation",
+          "review",
+          "opinion"
+        ],
+        "title": "InvestmentReviewStatus"
+      },
+      "IssuerValuation": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "partial",
+              "data_insufficient",
+              "not_executed"
+            ],
+            "title": "Status"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "trade_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trade Date"
+          },
+          "price_source_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Source Id"
+          },
+          "measures": {
+            "items": {
+              "$ref": "#/components/schemas/ValuationMeasure"
+            },
+            "type": "array",
+            "title": "Measures"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "qualitative": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualitative"
+          },
+          "qualitative_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Qualitative Evidence Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company_id",
+          "status"
+        ],
+        "title": "IssuerValuation"
+      },
+      "Metric": {
+        "properties": {
+          "metric_id": {
+            "type": "string",
+            "title": "Metric Id"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "metric_name": {
+            "type": "string",
+            "title": "Metric Name"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "title": "Period End"
+          },
+          "fiscal_period": {
+            "type": "string",
+            "title": "Fiscal Period"
+          },
+          "accounting_basis": {
+            "type": "string",
+            "title": "Accounting Basis"
+          },
+          "actual_or_guidance": {
+            "type": "string",
+            "enum": [
+              "actual",
+              "guidance",
+              "analyst_estimate",
+              "model_inference"
+            ],
+            "title": "Actual Or Guidance"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "capex_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capex Scope"
+          },
+          "duration_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "quarter",
+                  "ytd",
+                  "year"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Kind"
+          },
+          "calculation_method": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "quarter_difference",
+                  "operating_cash_flow_less_capex",
+                  "growth"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calculation Method"
+          }
+        },
+        "type": "object",
+        "required": [
+          "metric_id",
+          "company_id",
+          "metric_name",
+          "value",
+          "unit",
+          "period_end",
+          "fiscal_period",
+          "accounting_basis",
+          "actual_or_guidance",
+          "evidence_ids"
+        ],
+        "title": "Metric"
+      },
+      "NewsAnalysis": {
+        "properties": {
+          "generation_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "news_collected",
+                  "news_analysis_completed",
+                  "synthesis_completed",
+                  "generation_truncated",
+                  "generation_failed",
+                  "budget_unavailable",
+                  "evidence_insufficient"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generation Status"
+          },
+          "failed_stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "analysis",
+                  "article"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Stage"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "partial",
+              "search_failed",
+              "no_results",
+              "not_executed"
+            ],
+            "title": "Status"
+          },
+          "overall_assessment": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "neutral",
+              "cautious",
+              "mixed",
+              "insufficient"
+            ],
+            "title": "Overall Assessment",
+            "default": "insufficient"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium"
+            ],
+            "title": "Confidence",
+            "default": "low"
+          },
+          "as_of": {
+            "type": "string",
+            "title": "As Of"
+          },
+          "news_items": {
+            "items": {
+              "$ref": "#/components/schemas/NewsItem"
+            },
+            "type": "array",
+            "title": "News Items"
+          },
+          "insights": {
+            "items": {
+              "$ref": "#/components/schemas/NewsInsight"
+            },
+            "type": "array",
+            "title": "Insights"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "as_of"
+        ],
+        "title": "NewsAnalysis"
+      },
+      "NewsInsight": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "negative",
+              "cross_news",
+              "business",
+              "financial",
+              "market_expectations",
+              "synthesis"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1600,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Evidence Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "text",
+          "evidence_ids"
+        ],
+        "title": "NewsInsight"
+      },
+      "NewsItem": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "operations_strategy",
+              "earnings",
+              "products_technology",
+              "industry",
+              "competition",
+              "analyst_views",
+              "macro",
+              "policy_regulation",
+              "geopolitics",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "attribution": {
+            "type": "string",
+            "enum": [
+              "management_statement",
+              "analyst_view",
+              "reported_event",
+              "unclassified"
+            ],
+            "title": "Attribution"
+          },
+          "publication_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Date"
+          },
+          "publication_basis": {
+            "type": "string",
+            "enum": [
+              "publisher_metadata",
+              "search_metadata",
+              "unknown"
+            ],
+            "title": "Publication Basis",
+            "default": "unknown"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "publisher_excerpt_matched": {
+            "type": "boolean",
+            "title": "Publisher Excerpt Matched",
+            "default": false
+          },
+          "related_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Related Source Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "category",
+          "summary",
+          "attribution"
+        ],
+        "title": "NewsItem"
+      },
+      "ProviderActivity": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "calls": {
+            "type": "integer",
+            "title": "Calls",
+            "default": 0
+          },
+          "succeeded": {
+            "type": "integer",
+            "title": "Succeeded",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "default": 0
+          },
+          "mock_used": {
+            "type": "boolean",
+            "title": "Mock Used",
+            "default": false
+          },
+          "http_attempts": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Attempts"
+          },
+          "http_responses": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Responses"
+          }
+        },
+        "type": "object",
+        "title": "ProviderActivity"
+      },
+      "ProviderEvent": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "elapsed_ms": {
+            "type": "integer",
+            "title": "Elapsed Ms",
+            "default": 0
+          },
+          "http_attempts": {
+            "type": "integer",
+            "title": "Http Attempts",
+            "default": 0
+          },
+          "http_responses": {
+            "type": "integer",
+            "title": "Http Responses",
+            "default": 0
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed"
+            ],
+            "title": "Outcome",
+            "default": "succeeded"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "result_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Count"
+          },
+          "usable_results": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usable Results"
+          },
+          "adopted_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Adopted Source Ids"
+          },
+          "news_context_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "News Context Source Ids"
+          },
+          "news_selected_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "News Selected Source Ids"
+          },
+          "news_cited_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "News Cited Source Ids"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "prompt_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Tokens"
+          },
+          "completion_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completion Tokens"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "finish_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finish Reason"
+          },
+          "http_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Status"
+          },
+          "max_output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Output Tokens"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "retry_wait_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry Wait Seconds"
+          },
+          "filing_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Filing Types"
+          },
+          "filings_retrieved": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filings Retrieved"
+          },
+          "filings_parsed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filings Parsed"
+          },
+          "filing_parse_failures": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filing Parse Failures"
+          },
+          "parsed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parsed"
+          },
+          "extracted": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted"
+          },
+          "verified": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "stage"
+        ],
+        "title": "ProviderEvent"
+      },
+      "ProviderHealth": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "mode",
+          "provider",
+          "model"
+        ],
+        "title": "ProviderHealth"
+      },
+      "Report": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id"
+          },
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "data_as_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of"
+          },
+          "data_mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "live",
+              "mixed",
+              "unverified"
+            ],
+            "title": "Data Mode"
+          },
+          "providers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProviderActivity"
+            },
+            "type": "object",
+            "title": "Providers"
+          },
+          "companies": {
+            "items": {
+              "$ref": "#/components/schemas/Company"
+            },
+            "type": "array",
+            "title": "Companies"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/Metric"
+            },
+            "type": "array",
+            "title": "Metrics"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Claims"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          },
+          "input_report_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Input Report Ids"
+          },
+          "investment_analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestmentAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "valuation_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "completed",
+                  "partial",
+                  "data_insufficient",
+                  "not_executed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valuation Status"
+          },
+          "valuations": {
+            "items": {
+              "$ref": "#/components/schemas/IssuerValuation"
+            },
+            "type": "array",
+            "title": "Valuations"
+          },
+          "news_analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewsAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "research_quality": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResearchQuality"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "investment_narrative": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestmentNarrative"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "investment_draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestmentAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "investment_review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestmentReviewStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "provider_events": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderEvent"
+            },
+            "type": "array",
+            "title": "Provider Events"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "researching",
+              "verifying",
+              "completed",
+              "partial",
+              "failed"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "report_id",
+          "task_id",
+          "query",
+          "generated_at",
+          "data_mode",
+          "companies",
+          "metrics",
+          "claims",
+          "sources",
+          "limitations",
+          "status"
+        ],
+        "title": "Report"
+      },
+      "ResearchQuality": {
+        "properties": {
+          "core_gaps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Core Gaps"
+          },
+          "supplemental_gaps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supplemental Gaps"
+          },
+          "historical_conflicts": {
+            "type": "integer",
+            "title": "Historical Conflicts",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "ResearchQuality"
+      },
+      "ResearchRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Query"
+          },
+          "companies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Companies"
+          },
+          "as_of_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Date"
+          },
+          "report_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Report Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "ResearchRequest"
+      },
+      "ResearchTaskStatus": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "researching",
+              "verifying",
+              "completed",
+              "partial",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "progress": {
+            "type": "integer",
+            "title": "Progress"
+          },
+          "current_step": {
+            "type": "string",
+            "title": "Current Step"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "resource_usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskResourceUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "providers": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/ProviderActivity"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Providers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "status",
+          "progress",
+          "current_step",
+          "created_at",
+          "updated_at",
+          "report_id",
+          "error_code",
+          "error_message"
+        ],
+        "title": "ResearchTaskStatus"
+      },
+      "SettingsStatus": {
+        "properties": {
+          "settings": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Settings"
+          },
+          "saved_keys": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Saved Keys"
+          },
+          "environment_keys": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Environment Keys"
+          },
+          "effective_sources": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "environment",
+                    "dotenv",
+                    "local_settings",
+                    "runtime"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Effective Sources"
+          },
+          "startup_overrides": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "environment",
+                    "dotenv"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Startup Overrides"
+          },
+          "saved": {
+            "type": "boolean",
+            "title": "Saved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "settings",
+          "saved_keys",
+          "environment_keys",
+          "effective_sources",
+          "startup_overrides",
+          "saved"
+        ],
+        "title": "SettingsStatus"
+      },
+      "SettingsUpdate": {
+        "properties": {
+          "nebius_api_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nebius Api Key"
+          },
+          "nebius_model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nebius Model"
+          },
+          "tavily_api_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tavily Api Key"
+          },
+          "sec_contact_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 320
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sec Contact Email"
+          },
+          "clear_nebius_api_key": {
+            "type": "boolean",
+            "title": "Clear Nebius Api Key",
+            "default": false
+          },
+          "clear_tavily_api_key": {
+            "type": "boolean",
+            "title": "Clear Tavily Api Key",
+            "default": false
+          },
+          "clear_sec_contact_email": {
+            "type": "boolean",
+            "title": "Clear Sec Contact Email",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SettingsUpdate"
+      },
+      "Source": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "publisher": {
+            "type": "string",
+            "title": "Publisher"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "publication_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Date"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "quoted_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quoted Text"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
+          },
+          "metric_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Name"
+          },
+          "numeric_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "structured_locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Structured Locator"
+          },
+          "issuer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuer Name"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "accounting_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accounting Basis"
+          },
+          "actual_or_guidance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Or Guidance"
+          },
+          "capex_scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capex Scope"
+          },
+          "financial_concept": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Financial Concept"
+          },
+          "xbrl_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xbrl Tag"
+          },
+          "tag_definition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag Definition"
+          },
+          "original_numeric_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Numeric Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "title",
+          "publisher",
+          "url",
+          "source_type"
+        ],
+        "title": "Source"
+      },
+      "TaskResourceUsage": {
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "estimated_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Usd"
+          },
+          "model_calls": {
+            "type": "integer",
+            "title": "Model Calls"
+          },
+          "prompt_tokens": {
+            "type": "integer",
+            "title": "Prompt Tokens"
+          },
+          "completion_tokens": {
+            "type": "integer",
+            "title": "Completion Tokens"
+          },
+          "search_queries": {
+            "type": "integer",
+            "title": "Search Queries"
+          },
+          "search_rounds": {
+            "type": "integer",
+            "title": "Search Rounds"
+          },
+          "elapsed_seconds": {
+            "type": "number",
+            "title": "Elapsed Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_calls",
+          "prompt_tokens",
+          "completion_tokens",
+          "search_queries",
+          "search_rounds",
+          "elapsed_seconds"
+        ],
+        "title": "TaskResourceUsage"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ValuationMeasure": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "formula": {
+            "type": "string",
+            "title": "Formula"
+          },
+          "inputs": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Inputs"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence Ids"
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "trailing_actual",
+              "fiscal_year_actual",
+              "instant_actual",
+              "forward_estimate"
+            ],
+            "title": "Basis"
+          },
+          "period_end": {
+            "type": "string",
+            "title": "Period End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "unit",
+          "formula",
+          "inputs",
+          "evidence_ids",
+          "basis",
+          "period_end"
+        ],
+        "title": "ValuationMeasure"
+      }
+    }
+  }
+}
