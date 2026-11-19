@@ -1,7 +1,8 @@
+from decimal import Decimal
 import re
 
 from backend.evidence.registry import EvidenceRegistry
-from backend.financial.validator import period_kind
+from backend.financial.validator import percentage, period_kind
 from backend.financial.valuation import valuation_is_core
 from backend.providers.live import NebiusModelProvider, ProviderError
 from .limits import ResourceLimitReached
@@ -21,6 +22,82 @@ def investment_requested(query: str) -> bool:
         r"\b(impact|implications?|outlook|mean for|affect(?:s|ed)?|going forward)\b|影响|前景|意味着|后续走势",
         query, re.IGNORECASE)
     return bool(disclosure and consequences)
+
+
+def cash_conversion_context(facts):
+    """Pair FCF with its cited operating cash flow for the same reporting period."""
+    identity = ('company_id', 'period_start', 'period_end', 'duration_kind', 'currency', 'unit', 'accounting_basis')
+    cash_flows = [fact for fact in facts if fact.get('metric_name') == 'operating_cash_flow' and (fact.get('value') or 0) > 0]
+    ratios = []
+    for fact in facts:
+        if (fact.get('metric_name') != 'free_cash_flow'
+                or fact.get('calculation_method') != 'operating_cash_flow_less_capex'):
+            continue
+        matches = [cash_flow for cash_flow in cash_flows
+                   if all(fact[key] == cash_flow[key] for key in identity if key != 'duration_kind')
+                   and set(cash_flow['evidence_ids']) <= set(fact['evidence_ids'])]
+        if len(matches) == 1:
+            cash_flow, = matches
+            result = percentage(Decimal(str(fact['value'])), Decimal(str(cash_flow['value'])))
+            ratios.append({
+                **{key: fact[key] for key in identity},
+                'fiscal_period': fact['fiscal_period'], 'capex_scope': fact['capex_scope'],
+                'free_cash_flow': fact['value'], 'operating_cash_flow': cash_flow['value'],
+                'free_cash_flow_to_operating_cash_flow_pct': float(round(result, 2)),
+                'evidence_ids': fact['evidence_ids'],
+            })
+    return ratios
+
+
+def apply_disclosed_fiscal_labels(draft, citations, facts):
+    # Correct only explicit date ranges with an unambiguous, directly cited issuer label.
+    pattern = re.compile(
+        r'\b(?:Q[1-4] FY\d{4}|FY\d{4} Q[1-4])(?= \((\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})\))')
+    ytd_revenue = re.compile(
+        r'\b(?:YTD FY\d{4}|FY\d{4} YTD)(?= revenue (?:was|reached|totaled) '
+        r'\$([0-9]+(?:\.[0-9]+)?)\s*(?:B\b|billion\b))', re.I)
+    points = []
+    for index, point in enumerate(draft.points):
+        refs = set(citations.get(str(index), ()))
+        labels = {}
+        for fact in facts:
+            if (re.fullmatch(r'FY\d{4} Q[1-4]', fact.get('fiscal_period', ''))
+                    and fact['evidence_ids'] and set(fact['evidence_ids']) <= refs):
+                dates = (fact['period_start'], fact['period_end'])
+                labels.setdefault(dates, set()).add((fact['company_id'], fact['fiscal_period']))
+
+        def disclosed(match):
+            candidates = labels.get(match.groups(), ())
+            if len(candidates) == 1:
+                (_, label), = candidates
+                return label
+            return match[0]
+
+        ytd_anchors = {(fact['company_id'], fact['period_start'], fact['period_end'])
+                       for fact in facts if fact.get('fiscal_period', '').endswith(' YTD')
+                       and fact['evidence_ids'] and set(fact['evidence_ids']) <= refs}
+
+        def disclosed_ytd(match):
+            if len(ytd_anchors) != 1:
+                return match[0]
+            amount = Decimal(match[1]) * 1_000_000_000
+            candidates = [fact for fact in facts if fact.get('metric_name') == 'revenue'
+                          and fact.get('unit') == 'USD' and fact.get('value') == amount
+                          and re.fullmatch(r'FY\d{4} Q[1-4] YTD', fact['fiscal_period'])
+                          and (fact['company_id'], fact['period_start'], fact['period_end']) in ytd_anchors]
+            if len(candidates) != 1:
+                return match[0]
+            fact, = candidates
+            combined = list(dict.fromkeys([*citations[str(index)], *fact['evidence_ids']]))
+            if len(combined) > 8:
+                return match[0]
+            citations[str(index)] = combined
+            year, quarter, _ = fact['fiscal_period'].split()
+            return f'{year} through {quarter}'
+
+        text = ytd_revenue.sub(disclosed_ytd, pattern.sub(disclosed, point.text))
+        points.append(point.model_copy(update={'text': text}))
+    return draft.model_copy(update={'points': points})
 
 
 def analyze_investment(query, plan, metrics, sources, web_sources, model, limits, progress,
@@ -55,6 +132,11 @@ def analyze_investment(query, plan, metrics, sources, web_sources, model, limits
     news_ids = {identifier for insight in (news_context or {}).get('insights', [])
                 for identifier in insight['evidence_ids']}
     available_leads = [source for source in web_sources if source.quoted_text and not historical_day]
+    # Retain direct notices when the existing corroboration round retrieves one.
+    available_leads.sort(key=lambda source: not (
+        getattr(source, 'source_type', None) == 'issuer_lead'
+        and re.search(r'\b(?:CEO|chief executive)\b.{0,60}\b(?:transition|succession|appointment|resignation)\b',
+                      source.title, re.I)))
     selected_leads = {source.source_id: source for source in available_leads[:10]}
     for source_id in sorted(news_ids):
         source = registry.get(source_id)
@@ -62,7 +144,9 @@ def analyze_investment(query, plan, metrics, sources, web_sources, model, limits
             selected_leads.setdefault(source_id, source)
     leads = [{'source_id': source.source_id, 'publisher': source.publisher[:100],
               'date': source.publication_date, 'issuer_id': source.company_id,
-              'title': source.title[:140], 'excerpt': source.quoted_text[:420]}
+              'title': source.title[:140], 'url': getattr(source, 'url', None),
+              'source_type': getattr(source, 'source_type', None),
+              'excerpt': source.quoted_text[:420]}
              for source in selected_leads.values()]
     lead_ids = set(selected_leads)
     if news_context:
@@ -111,6 +195,7 @@ def analyze_investment(query, plan, metrics, sources, web_sources, model, limits
                 'verification_questions': plan.verification_questions,
                 'investment_intent': getattr(plan, 'investment_intent', False),
                 'verified_financial_facts': facts, 'unverified_external_leads': leads,
+                'cash_conversion_calculations': cash_conversion_context(facts),
                 'saved_report_context': archives,
                 'research_gaps': issues[:8],
                 'news_analysis': news_context,
@@ -135,6 +220,7 @@ def analyze_investment(query, plan, metrics, sources, web_sources, model, limits
             citations[str(index)] = refs
             if missing:
                 unmatched_citations[str(index)] = missing
+    draft = apply_disclosed_fiscal_labels(draft, citations, facts)
     required = set(issuer_ids) or {fact['company_id'] for fact in facts}
     if on_draft is not None:
         job = prepare_review(draft, context, required, citations, limits.model or model.active_model(),

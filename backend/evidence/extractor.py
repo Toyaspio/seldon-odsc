@@ -46,7 +46,7 @@ class EvidenceExtractor:
         return sorted(sources.values(), key=lambda source: source.source_type == 'web_search')
 
     def structured(self, company: Company, rows: list[dict]) -> tuple[list[Metric], list[Source]]:
-        facts, sources = {}, {}
+        facts, sources, fiscal_labels = {}, {}, {}
         for row in rows:
             try:
                 metric_name = row['metric_name']
@@ -79,10 +79,13 @@ class EvidenceExtractor:
                 if source_type not in {'sec_xbrl', 'esef_xbrl', 'sec_statement'}:
                     continue
                 accession = row.get('accession_number')
+                fiscal_label = row.get('fiscal_label') if source_type == 'sec_statement' else None
                 basis = row.get('accounting_basis') or {'us-gaap': 'US GAAP', 'ifrs-full': 'IFRS', 'dei': 'Issuer reference data'}[taxonomy]
                 tag_path = row.get('xbrl_tag') or (
                     f'cash-flow table: {tag}' if source_type == 'sec_statement' else f'{taxonomy}:{tag}')
                 locator = f'{tag_path} {currency} {start or "instant"}..{end}; accession {accession or "unavailable"}'
+                if fiscal_label:
+                    locator += f'; issuer fiscal period {fiscal_label}'
                 evidence_id = source_type + ':' + identifier(company.company_id, tag, start, end, currency, number, accession, filed, url)
                 sources[evidence_id] = Source(
                     source_id=evidence_id, title=f'{row["form"]} · {tag}',
@@ -102,6 +105,8 @@ class EvidenceExtractor:
                 key = (metric_name, currency, start, end, basis, number)
                 if scope is not None:
                     key += (scope,)
+                if fiscal_label:
+                    fiscal_labels.setdefault(key, set()).add(fiscal_label)
                 if key not in facts:
                     facts[key] = Metric(
                         metric_id='fact:' + identifier(company.company_id, *key),
@@ -116,4 +121,7 @@ class EvidenceExtractor:
                     facts[key].evidence_ids.append(evidence_id)
             except (KeyError, TypeError, ValueError, InvalidOperation):
                 continue
+        for key, labels in fiscal_labels.items():
+            if len(labels) == 1:
+                facts[key].fiscal_period = next(iter(labels))
         return list(facts.values()), list(sources.values())

@@ -698,6 +698,13 @@ class ResearchOrchestrator:
         if limits.news_results and len(companies) == 1 and discovery:
             name = companies[0].company_name[:95]
             corroboration = [f'{name} recent company announcements independent reporting competitors risks outlook']
+        if not historical_day and wants_investment:
+            for issuer in companies:
+                host = domains.get(issuer.company_id)
+                if host and any(re.search(r'\b(?:CEO|chief executive)\b.{0,90}\b(?:resign\w*|transition|step\w* down|successor)\b',
+                                          str(result.get('content') or ''), re.I | re.S)
+                                for result in raw_results):
+                    corroboration.insert(0, f'site:{host} {issuer.company_name[:95]} CEO transition official announcement')
         if gaps or investment_queries or remaining_news or corroboration:
             company = gaps[0][0] if gaps else None
             cutoff = f' published by {as_of_date}' if as_of_date else ''
@@ -708,7 +715,8 @@ class ResearchOrchestrator:
             explicit = set(requested_metrics(query))
             core_queries = [search for search, (_, metric) in zip(gap_queries, gaps)
                             if re.sub(r'_(?:annual|qoq|yoy)_growth$', '', metric) in explicit]
-            follow_ups = list(dict.fromkeys(core_queries + remaining_news + investment_queries +
+            issuer_checks = [search for search in corroboration if search.startswith('site:')]
+            follow_ups = list(dict.fromkeys(core_queries + issuer_checks + remaining_news + investment_queries +
                                             corroboration + gap_queries))
             follow_ups = [query for query in follow_ups if query.casefold() not in initial_keys]
             follow_ups = follow_ups[:min(6, limits.max_search_queries - limits.queries_used)]

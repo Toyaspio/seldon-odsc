@@ -297,6 +297,15 @@ def run_review(job, model, limits, checkpoint):
         if wait:
             time.sleep(wait)
         points = [{'item_id': i, **_review_point(job, i)} for i in ids]
+        facts = job['context']['verified_financial_facts']
+        ratios = job['context'].get('cash_conversion_calculations', [])
+        for point in points:
+            citations = set(point['evidence_ids'])
+            point['cited_financial_facts'] = [fact['metric_id'] for fact in facts
+                                              if fact.get('metric_id') and fact['evidence_ids']
+                                              and set(fact['evidence_ids']) <= citations]
+            point['cited_cash_conversion'] = [ratio for ratio in ratios
+                                               if set(ratio['evidence_ids']) <= citations]
         unmatched = job.get('unmatched_citations', {})
         for point in points:
             if point['item_id'] in unmatched:

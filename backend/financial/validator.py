@@ -130,7 +130,10 @@ class FinancialValidator:
                        and item.period_start == start and item.period_end == current.period_end for item in valid):
                     continue
                 value = Decimal(str(current.value)) - Decimal(str(prior.value))
-                metadata = {'fiscal_period': 'standalone quarter (derived)', 'duration_kind': 'quarter'}
+                quarter_label = current.fiscal_period.removesuffix(' YTD')
+                if quarter_label == current.fiscal_period:
+                    quarter_label = 'standalone quarter (derived)'
+                metadata = {'fiscal_period': quarter_label, 'duration_kind': 'quarter'}
                 if current.metric_name == 'cash_capex':
                     metadata['calculation_method'] = 'quarter_difference'
                 quarters.append(calculated(current, current.metric_name, value, [current, prior], start=start)

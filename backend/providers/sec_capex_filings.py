@@ -35,6 +35,8 @@ class ReviewedFiling:
     taxonomy: str
     layout: str
     historical: bool = False
+    # Explicit issuer labels keyed by observation end, including comparative columns.
+    fiscal_quarters: tuple[tuple[str, str], ...] = ()
 
     @property
     def url(self):
@@ -42,7 +44,8 @@ class ReviewedFiling:
 
 
 FILINGS = (
-    ReviewedFiling(NVDA, '0001045810-26-000088', 'q3fy27pr.htm', '2026-11-17', '2026-10-25', '8-K', 'us-gaap', 'nvda'),
+    ReviewedFiling(NVDA, '0001045810-26-000088', 'q3fy27pr.htm', '2026-11-17', '2026-10-25', '8-K', 'us-gaap', 'nvda',
+                   fiscal_quarters=(('2026-10-25', 'FY2027 Q3'), ('2025-10-26', 'FY2026 Q3'))),
     ReviewedFiling(NVDA, '0001045810-21-000010', 'nvda-20210131.htm', '2021-02-26', '2021-01-31',
                    '10-K', 'us-gaap', 'inline', historical=True),
     ReviewedFiling(TSM, '0001046179-26-000801', 'a2026q3consolidatedreport-.htm', '2026-11-13', '2026-09-30', '6-K', 'ifrs-full', 'tsm'),
@@ -82,7 +85,9 @@ def attributes(text):
 
 
 def row_record(filing, metric, name, value, raw, unit, start, end, duration, scope=None, tagged=False):
-    return {'cik': filing.cik, 'taxonomy': filing.taxonomy, 'tag': name.split(':', 1)[-1] if tagged else name,
+    quarter = dict(filing.fiscal_quarters).get(end)
+    fiscal_label = quarter if duration == 'quarter' else f'{quarter} YTD' if quarter and duration == 'ytd' else None
+    return {'fiscal_label': fiscal_label, 'cik': filing.cik, 'taxonomy': filing.taxonomy, 'tag': name.split(':', 1)[-1] if tagged else name,
             'xbrl_tag': name if tagged else None, 'value': value, 'raw_value': raw, 'unit': unit,
             'period_start': start, 'period_end': end, 'filed_at': filing.filed, 'form': filing.form,
             'duration_kind': duration, 'metric_name': metric, 'source_url': filing.url, 'capex_scope': scope,
