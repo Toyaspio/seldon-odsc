@@ -79,7 +79,7 @@ def analyze_investment(query, plan, metrics, sources, web_sources, model, limits
             'report_id': report.report_id, 'generated_at': report.generated_at.isoformat(),
             'as_of_date': report.data_as_of,
             'issuers': [company.company_name[:100] for company in report.companies],
-            'verified_claims': [{'text': claim.text[:230], 'evidence_ids': claim.evidence_ids}
+            'verified_claims': [{'text': claim.text[:230], 'company_id': claim.company_id, 'evidence_ids': claim.evidence_ids}
                                 for claim in claims[:8]],
             'verification_gaps': [text[:200] for text in report.limitations[:3]],
         })

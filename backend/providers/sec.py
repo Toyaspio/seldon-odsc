@@ -30,6 +30,7 @@ ALIASES = {'微软': 'MSFT', '谷歌': 'GOOGL', 'google': 'GOOGL', 'amazon': 'AM
            '脸书': 'META', '英伟达': 'NVDA', '甲骨文': 'ORCL', '阿里巴巴': 'BABA',
            'jpmorgan chase': 'JPM', 'tsmc': 'TSM', 'taiwan semiconductor': 'TSM',
            'toyota': 'TM', 'shell': 'SHEL', 'spacex': 'SPCX'}
+ALIASES.update({'google cloud': 'GOOGL', 'aws': 'AMZN'})
 SEEDS = {'microsoft': ('Microsoft Corporation', 'MSFT', '789019'),
          'alphabet': ('Alphabet Inc.', 'GOOGL', '1652044'),
          'amazon': ('Amazon.com, Inc.', 'AMZN', '1018724'),

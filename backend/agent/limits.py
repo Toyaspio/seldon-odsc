@@ -50,12 +50,23 @@ class ResourceLimitReached(RuntimeError):
     pass
 
 
+class InvalidResearchConfiguration(ValueError):
+    pass
+
+
+def configured_integer(name, default):
+    try:
+        return int(os.getenv(name, default))
+    except ValueError:
+        raise InvalidResearchConfiguration(f'{name} must be an integer.') from None
+
+
 @dataclass
 class ResearchLimits:
-    max_search_rounds: int = field(default_factory=lambda: int(os.getenv('MAX_SEARCH_ROUNDS', '2')))
-    max_search_queries: int = field(default_factory=lambda: int(os.getenv('MAX_SEARCH_QUERIES', '12')))
-    request_timeout_seconds: int = field(default_factory=lambda: int(os.getenv('REQUEST_TIMEOUT_SECONDS', '240')))
-    max_model_calls: int = field(default_factory=lambda: int(os.getenv('MAX_MODEL_CALLS', '6')))
+    max_search_rounds: int = field(default_factory=lambda: configured_integer('MAX_SEARCH_ROUNDS', '2'))
+    max_search_queries: int = field(default_factory=lambda: configured_integer('MAX_SEARCH_QUERIES', '12'))
+    request_timeout_seconds: int = field(default_factory=lambda: configured_integer('REQUEST_TIMEOUT_SECONDS', '240'))
+    max_model_calls: int = field(default_factory=lambda: configured_integer('MAX_MODEL_CALLS', '6'))
     rounds_used: int = 0
     queries_used: int = 0
     model_calls: int = 0

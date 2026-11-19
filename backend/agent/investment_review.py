@@ -22,6 +22,7 @@ VERDICTS = {'supported', 'partially_supported', 'unsupported', 'contradicted',
             'needs_qualification', 'unverifiable'}
 POSITION_TOPICS = {'thesis', 'operating_state', 'financial_quality', 'outlook', 'key_factor',
                    'supporting_case', 'opposing_case', 'tradeoff', 'counterargument'}
+QUALIFIED_VERDICTS = {'partially_supported', 'needs_qualification'}
 
 
 def bounded_setting(name, default, lo, hi):
@@ -113,20 +114,35 @@ def summarize(job, *, pending=False):
     supported = [point.model_copy(update={'evidence_ids': _review_point(job, str(index))['evidence_ids']})
                  for index, point in enumerate(draft.points)
                  if job['verdicts'].get(str(index)) == 'supported']
+    for index, point in enumerate(draft.points):
+        key = str(index)
+        if job['verdicts'].get(key) in QUALIFIED_VERDICTS and key in job.get('resolved_citations', {}):
+            qualification = (job.get('suggested_revisions', {}).get(key)
+                             or job.get('reasons', {}).get(key))
+            if qualification:
+                supported.append(point.model_copy(update={
+                    'evidence_ids': _review_point(job, key)['evidence_ids']}))
     eligible = job.get('resolved_citations')
     theses = [str(index) for index, point in enumerate(draft.points)
               if point.topic == 'thesis' and (eligible is None or str(index) in eligible)]
     technical = any(status in {'failed', 'interrupted', 'budget_blocked'}
                     for status in job['batch_status'].values())
     unfinished = bool(job['queue']) or technical
-    facts = job['context']['verified_financial_facts']
+    facts = [*job['context']['verified_financial_facts'],
+             *(claim for archive in job['context'].get('saved_report_context', [])
+               for claim in archive.get('verified_claims', []) if claim.get('company_id'))]
     comparative = bool(job['context'].get('saved_report_context'))
     primary = next((str(i) for i, point in enumerate(draft.points) if point.topic == 'thesis'), None)
     blocked_thesis = job['verdicts'].get(primary) in {'contradicted', 'unsupported'}
-    approved = not blocked_thesis and supported_direction(draft.stance, supported, facts, job['required'])
+    # A qualified thesis is deliverable with its qualification and provisional status.
+    fully_supported = [point.model_copy(update={'evidence_ids': _review_point(job, str(i))['evidence_ids']})
+                       for i, point in enumerate(draft.points) if job['verdicts'].get(str(i)) == 'supported']
+    approved = not blocked_thesis and supported_direction(draft.stance, fully_supported, facts, job['required'])
     provisional_thesis = next((draft.points[int(index)].model_copy(
         update={'evidence_ids': _review_point(job, index)['evidence_ids']})
-        for index in theses if job['verdicts'].get(index) in {None, 'supported'}), None)
+        for index in theses if job['verdicts'].get(index) in {None, 'supported'} or
+        (job['verdicts'].get(index) in QUALIFIED_VERDICTS and
+         (job.get('suggested_revisions', {}).get(index) or job.get('reasons', {}).get(index)))), None)
     preliminary = (not approved and not blocked_thesis and provisional_thesis is not None
                    and draft.stance not in {'insufficient', 'provisional_neutral'})
     qualified = {'supported', 'partially_supported'}

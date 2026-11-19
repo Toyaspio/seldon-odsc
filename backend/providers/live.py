@@ -99,7 +99,9 @@ def _decode_investment_draft(content, *, truncated=False, references=()):
         references = ([ref for ref in references if isinstance(ref, str) and ref.strip()]
                       if isinstance(references, list) else [])
         topic = row.get('topic')
-        if topic in ('investment_thesis', 'position', 'investment_view'):
+        if isinstance(topic, str):
+            topic = topic.strip().lower().replace('-', '_').replace(' ', '_')
+        if topic in ('investment_thesis', 'position', 'investment_view', 'conclusion', 'recommendation', 'investment_conclusion'):
             topic = 'thesis'
         if not isinstance(topic, str) or topic not in get_args(InvestmentPoint.model_fields['topic'].annotation):
             topic = 'outlook'
