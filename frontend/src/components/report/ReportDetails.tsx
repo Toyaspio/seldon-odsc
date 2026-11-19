@@ -3,6 +3,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import type { InvestmentAnalysis, Metric, Report, ResearchUsage, Source } from '../../types/api'
 import { capexScopeLabel, reportPeriod } from '../../lib/metrics'
 import { formatValue } from '../../lib/format'
+import { headlineExplanation, headlineQualifications, highlights, sectionFor, sectionQualification } from '../../lib/investmentPresentation'
 
 const providerLabels: Record<string, string> = {
   nebius: 'Nebius', tavily: 'Tavily', sec: 'SEC EDGAR', esef: 'Issuer ESEF',
@@ -26,10 +27,8 @@ const topicLabels: Record<string, string> = {
 const readable = (value: string) => value.replaceAll('_', ' ')
 
 function PointQualification({ report, point }: { report: Report; point: InvestmentAnalysis['points'][number] }) {
-  const section = report.investment_narrative?.sections.find((item) =>
-    item.topic === point.topic && item.text === point.text)
-  if (!section || !['partially_supported', 'needs_qualification'].includes(section.review_verdict)) return null
-  return <p className="text-sm text-fog-300">Qualified model assessment · {section.suggested_revision || section.review_reason}</p>
+  const note = sectionQualification(sectionFor(report, point))
+  return note ? <p className="text-sm text-fog-300">{note}</p> : null
 }
 
 export function ReportDisclosure({ title, children, initiallyOpen = false }:
@@ -46,19 +45,14 @@ export function InvestmentHeadline({ report }: { report: Report }) {
   if (!view) return null
   const hasDirection = !['insufficient', 'provisional_neutral'].includes(view.stance)
   const comparative = Boolean(report.input_report_ids?.length)
-  const thesis = view.points.find((point) => point.topic === 'thesis')
-  const outlook = view.points.find((point) => ['base_case', 'outlook', 'bull_case', 'bear_case'].includes(point.topic))
-  const primary = thesis ?? outlook ?? view.points[0]
-  const risk = view.points.find((point) => ['counterargument', 'opposing_case', 'risk'].includes(point.topic))
-  const trigger = view.points.find((point) => point.topic === 'invalidation')
+  const { primary, risk, trigger } = highlights(report)
+  const explanation = headlineExplanation(report)
   if (!comparative && !hasDirection && !primary) return null
   return <section className="panel space-y-3 border-l-2 border-l-signal-500 p-5" aria-label="Investment analysis">
     <h2 className="text-sm font-semibold text-fog-400">{comparative ? 'Comparative assessment' : 'Investment View'}</h2>
-    {report.investment_review?.opinion === 'provisional' &&
-      <p className="text-xs text-fog-400">Provisional view · Review is incomplete or the view requires qualification.</p>}
     {!comparative && <p className="text-2xl font-semibold text-fog-100">{hasDirection ? stanceLabels[view.stance] : 'Conditional outlook'}</p>}
     {comparative && primary && <p className="leading-relaxed text-fog-100">{primary.text}</p>}
-    {view.observation_reason && <p className="leading-relaxed text-fog-100">{view.observation_reason}</p>}
+    {explanation && <p className="leading-relaxed text-fog-100">{explanation}</p>}
     {!comparative && primary && <p className="leading-relaxed text-fog-100">{primary.text}</p>}
     {primary && <PointQualification report={report} point={primary} />}
     {comparative && !primary && <p className="text-sm text-fog-400">The comparative answer could not be generated. The financial findings are available below.</p>}
@@ -82,6 +76,7 @@ function Citation({ source }: { source: Source }) {
 
 export function InvestmentArticle({ report }: { report: Report }) {
   const sources = new Map(report.sources.map((source) => [source.source_id, source]))
+  const shownNotes = headlineQualifications(report)
   const sections = report.investment_narrative?.sections.filter((section) =>
     section.review_verdict === 'supported' ||
     (['partially_supported', 'needs_qualification'].includes(section.review_verdict) &&
@@ -92,13 +87,12 @@ export function InvestmentArticle({ report }: { report: Report }) {
   if (!sections.length) return null
   return <ReportDisclosure title="Full Investment Analysis" initiallyOpen>
     <div className="mx-auto max-w-4xl space-y-5">
-      {sections.map((section, index) => (
+      {sections.map((section, index) => {
+        const note = sectionQualification(section)
+        return (
         <section key={index} className="space-y-1">
           <h3 className="font-semibold text-fog-200">{topicLabels[section.topic] ?? readable(section.topic)}</h3>
-          {['partially_supported', 'needs_qualification'].includes(section.review_verdict) &&
-            <p className="text-sm text-fog-300">{['bull_case', 'base_case', 'bear_case'].includes(section.topic)
-              ? 'Scenario assumptions' : 'Qualified model assessment'} · {section.suggested_revision || section.review_reason}</p>}
-          {section.review_verdict === 'pending' && <p className="text-xs text-fog-400">The cited premises still need confirmation.</p>}
+          {note && !shownNotes.includes(note) && <p className="text-sm text-fog-300">{note}</p>}
           <p className="whitespace-pre-line leading-relaxed text-fog-100">{section.text}</p>
           <ul className="text-xs text-fog-400" aria-label="Paragraph citations">
             {[...new Set(section.evidence_ids)].map((id) => {
@@ -107,13 +101,15 @@ export function InvestmentArticle({ report }: { report: Report }) {
             })}
           </ul>
         </section>
-      ))}
+        )
+      })}
     </div>
   </ReportDisclosure>
 }
 
 export function InvestmentDetail({ report }: { report: Report }) {
   const points = report.investment_analysis?.points ?? []
+  const shownNotes = headlineQualifications(report)
   if (!points.length) return null
   const sources = new Map(report.sources.map((source) => [source.source_id, source]))
   let rank = 0
@@ -123,7 +119,7 @@ export function InvestmentDetail({ report }: { report: Report }) {
       <h3 className="font-semibold capitalize">{point.topic === 'key_factor' ? `Key factor ${++rank}`
         : topicLabels[point.topic] ?? readable(point.topic)}</h3>
       <p className="text-sm leading-relaxed text-fog-200">{point.text}</p>
-      <PointQualification report={report} point={point} />
+      {!shownNotes.includes(sectionQualification(sectionFor(report, point)) ?? '') && <PointQualification report={report} point={point} />}
       <ul className="space-y-1 text-xs">{point.evidence_ids.map((id) => {
         const source = sources.get(id)
         return source ? <li key={id}><Citation source={source} /></li> : null
@@ -139,10 +135,19 @@ export function ProviderDetails({ report, usage }: { report: Report; usage?: Res
   const active = Object.entries(report.providers ?? {}).filter(([, item]) => item.calls > 0 || item.mock_used)
   return <section className="panel space-y-4 p-5" aria-label="Provider Activity">
     <h2 className="font-semibold">Provider Activity</h2>
-    {report.investment_review && <p className="text-sm text-fog-400">
+    {report.investment_review && <details className="text-sm text-fog-400">
+      <summary className="cursor-pointer">Technical processing records</summary>
       {Object.entries(report.investment_review.batch_status).map(([id, state]) =>
         <span className="mr-3 inline-block" key={id}>{id} · {readable(state)}</span>)}
-    </p>}
+      <pre className="mt-3 whitespace-pre-wrap break-words text-xs">{JSON.stringify({
+        review: report.investment_review,
+        observation_reason: report.investment_analysis?.observation_reason,
+        sections: report.investment_narrative?.sections.map(section => ({
+          topic: section.topic, review_verdict: section.review_verdict,
+          review_reason: section.review_reason, suggested_revision: section.suggested_revision,
+        })),
+      }, null, 2)}</pre>
+    </details>}
     {usage?.model && <p className="text-xs text-fog-400">{usage.model} · {usage.prompt_tokens.toLocaleString()} input /
       {' '}{usage.completion_tokens.toLocaleString()} output tokens
       {usage.estimated_cost_usd != null && <> · Estimated model cost USD {usage.estimated_cost_usd.toFixed(6)}</>}
