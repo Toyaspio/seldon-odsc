@@ -96,7 +96,9 @@ class CompanyResolver:
                      if any(normalized(label) == key for label in issuer.labels)), None)
 
     def mentioned(self, query: str) -> list[str]:
-        found = [alias for alias in ALIASES if not alias.isascii() and alias in query]
+        found = [alias for alias in ALIASES if
+                 (re.search(rf'(?<!\w){re.escape(alias)}(?!\w)', query, re.I)
+                  if alias.isascii() else alias in query)]
         for name, (_, ticker, _) in SEEDS.items():
             if re.search(rf'(?<!\w){re.escape(name)}(?!\w)', query, re.I) or re.search(
                     rf'(?<!\w){ticker}(?!\w)', query):
@@ -280,7 +282,19 @@ class ReportBuilder:
         return Report(report_id=str(uuid4()), task_id='', generated_at=datetime.now(timezone.utc), **fields)
 
 
-def evidence_gaps(companies: list[Company], plan: ResearchPlan, metrics: list) -> list[tuple[Company, str]]:
+def requested_period(query):
+    if re.search(r'\b(?:ttm|trailing twelve months|trailing 12 months)\b|滚动十二个月|近\s*12\s*个月', query, re.I):
+        return None
+    if re.search(r'\b(?:ytd|year.to.date)\b|年初至今|年内累计', query, re.I):
+        return 'ytd'
+    if re.search(r'\b(?:quarter(?:ly)?|q[1-4])\b|季度|单季', query, re.I):
+        return 'quarter'
+    if re.search(r'\b(?:full.year|fiscal.year|year ended|annual(?![^?.]*\bgrowth\b)|fy\s*20\d{2})\b|全年|年度|财年', query, re.I):
+        return 'year'
+    return None
+
+
+def evidence_gaps(companies: list[Company], plan: ResearchPlan, metrics: list, query: str = '') -> list[tuple[Company, str]]:
     gaps = []
     expected = 'year' if plan.comparison == 'annual' else 'quarter'
     for company in companies:
@@ -290,6 +304,9 @@ def evidence_gaps(companies: list[Company], plan: ResearchPlan, metrics: list) -
                              and period_kind(record) == expected]
         for metric in plan.metrics:
             available = [record for record in own if record.metric_name == metric]
+            period = requested_period(query) if metric in requested_metrics(query) else None
+            if period:
+                available = [record for record in available if period_kind(record) == period]
             if not available or (reference_periods and max(reference_periods) >
                                  max(item.period_end for item in available)):
                 gaps.append((company, metric))
@@ -324,6 +341,14 @@ def scoped_research_quality(query, companies, metrics, claims, gaps, valuations)
         base = re.sub(r'_(?:annual|qoq|yoy)_growth$', '', name)
         output = core if base in explicit else supplemental
         output.add(f'{company.company_name}: {name.replace("_", " ")} lacks comparable verified data.')
+    period = requested_period(query)
+    if period:
+        for company in companies:
+            for name in explicit:
+                if not any(row.company_id == company.company_id and row.metric_name == name
+                           and row.actual_or_guidance == 'actual' and period_kind(row) == period for row in metrics):
+                    core.add(f'{company.company_name}: requested {period} {name.replace("_", " ")} is unavailable; '
+                             'other reporting periods remain available as context.')
     for claim in claims:
         if claim.verification_status != 'contradicted' or not claim.period_end:
             continue
@@ -408,7 +433,7 @@ class ResearchOrchestrator:
                     return True
         return False
 
-    def issuer_from_search(self, query, results, directory, provider, limits, planned_companies=()):
+    def issuer_from_search(self, query, results, directory, provider, limits, planned_companies=(), excluded_ciks=()):
         if not isinstance(provider, SecFinancialDataProvider):
             return None
         ciks = {}
@@ -427,7 +452,8 @@ class ResearchOrchestrator:
         matched = []
         normalized_query = normalized(query)
         # Search results only nominate CIKs. Official SEC metadata must ground the identity.
-        candidate_order = sorted(ciks, key=lambda cik: cik not in planned_ciks)
+        candidate_order = sorted((cik for cik in ciks if cik not in excluded_ciks),
+                                 key=lambda cik: cik not in planned_ciks)
         for cik in candidate_order[:2]:
             if not any(entry['cik'] == cik for entry in directory or []):
                 continue
@@ -541,12 +567,15 @@ class ResearchOrchestrator:
                                 rf'(?<!\w){re.escape(label)}(?!\w)', normalized_query):
                             names.append(label)
                             break
-        if not names and directory:
+        if directory:
             # The planner can omit the company. Try capitalized names from the
             # question against EDGAR before dropping to general web research.
             resolver = SecCompanyResolver()
             for token in re.finditer(r'\b[A-Z][A-Za-z0-9]{1,}\b', query):
                 label = token.group()
+                if any(normalized(name).startswith(normalized(label) + ' ') or normalized(name) == normalized(label)
+                       for name in names):
+                    continue
                 matches = resolver.matches(label, directory)
                 if any((label.isupper() and record['ticker'].upper() == label)
                        or (len(label) >= 4 and normalized(record['name']).split()[0] == label.casefold())
@@ -590,11 +619,13 @@ class ResearchOrchestrator:
         query_topics = {task.query[:275] + preferred: task.purpose for task in plan.retrieval_tasks}
         queries = list(query_topics)[:initial_cap]
         needs_identity = (not company_names and isinstance(provider, SecFinancialDataProvider)
-                          and not any(company.resolution_status == 'resolved' for company in companies))
+                          and (not companies or len(plan.companies) > len(companies)
+                               or any(company.resolution_status != 'resolved' for company in companies)))
         if needs_identity:
             # Keep this search independent of the model's suggested legal name.
             original_search = query.strip()[:275] + ' SEC issuer filing'
-            queries = [original_search]
+            queries = ([original_search, *queries][:initial_cap]
+                       if any(company.resolution_status == 'resolved' for company in companies) else [original_search])
             query_topics[original_search] = 'Identify the official company named in the question'
         if input_reports and company_labels:
             issuer_names = list(company_labels.values())
@@ -618,10 +649,12 @@ class ResearchOrchestrator:
         except ResourceLimitReached:
             issues.append('Initial search skipped due to a research limit.')
         if needs_identity:
-            recovered = self.issuer_from_search(query, raw_results, directory, provider, limits, plan.companies)
+            resolved = [company for company in companies if company.resolution_status == 'resolved']
+            recovered = self.issuer_from_search(query, raw_results, directory, provider, limits, plan.companies,
+                                                excluded_ciks={company.cik for company in resolved})
             if recovered:
-                companies = [recovered]
-                company_labels = {recovered.company_id: recovered.company_name}
+                companies = [*resolved, recovered]
+                company_labels = {company.company_id: company.company_name for company in companies}
         facts, sources = [], []
         for company in companies:
             if company.resolution_status != 'resolved':
@@ -645,7 +678,7 @@ class ResearchOrchestrator:
         audited, claims = self.verifier.audit_facts(facts, sources, company_labels)
         calculated = self.validator.calculate(audited, plan.comparison, claims=claims)
         metrics = audited + calculated
-        gaps = evidence_gaps(companies, plan, metrics)
+        gaps = evidence_gaps(companies, plan, metrics, query)
         model = self.planner.model
         investment_queries = []
         if (not historical_day and isinstance(model, NebiusModelProvider) and wants_investment
@@ -718,7 +751,7 @@ class ResearchOrchestrator:
                         audited, claims = self.verifier.audit_facts(list(fact_index.values()), sources, company_labels)
                         calculated = self.validator.calculate(audited, plan.comparison, claims=claims)
                         metrics = audited + calculated
-                        gaps = evidence_gaps(companies, plan, metrics)
+                        gaps = evidence_gaps(companies, plan, metrics, query)
             except ResourceLimitReached:
                 issues.append('Targeted follow-up skipped due to a research limit.')
             except SecProviderError:

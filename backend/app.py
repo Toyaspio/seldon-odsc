@@ -32,7 +32,7 @@ from backend.agent.investment_review import investment_article, run_review, summ
 from backend.agent.models import InvestmentReviewStatus
 from backend.agent.model_output import model_diagnostic_sink
 from backend.storage.store import load_review_for_report
-from backend.agent.limits import ResourceLimitReached, ResearchLimits
+from backend.agent.limits import ResourceLimitReached, ResearchLimits, InvalidResearchConfiguration
 from backend.evidence.verifier import qualify_claim
 from backend.providers.live import ProviderError
 from backend.providers.sec import SecFinancialDataProvider, available_by
@@ -139,16 +139,37 @@ def _read_saved_report(report):
 def _restore_saved_investment_view(report):
     quality = report.get('research_quality') or {}
     old_gap = 'The requested investment judgment could not be established.'
-    if old_gap not in quality.get('core_gaps', []):
+    qualified_thesis = any(section.get('topic') == 'thesis' and
+                           section.get('review_verdict') in {'partially_supported', 'needs_qualification'}
+                           for section in (report.get('investment_narrative') or {}).get('sections', []))
+    if old_gap not in quality.get('core_gaps', []) and not qualified_thesis:
         return report
     saved = load_review_for_report(report['task_id'])
     if saved is None:
-        return report
+        draft = report.get('investment_draft')
+        review = report.get('investment_review')
+        narrative = report.get('investment_narrative') or {}
+        if not (qualified_thesis and draft and review):
+            return report
+        # Imported reports retain their parsed review even without private checkpoints.
+        sections = narrative.get('sections', [])
+        job = dict(draft=draft, context={'verified_financial_facts': report.get('metrics', []),
+                                        'article_language': narrative.get('language', 'en')},
+                   required=[company['company_id'] for company in report.get('companies', [])
+                             if company.get('resolution_status') == 'resolved'],
+                   queue=[], verdicts=review.get('verdicts', {}), reasons=review.get('reasons', {}),
+                   suggested_revisions=review.get('suggested_revisions', {}),
+                   batch_status=review.get('batch_status', {}),
+                   resolved_citations={str(i): section['evidence_ids'] for i, section in enumerate(sections)
+                                       if section.get('evidence_ids')},
+                   generation_partial=review.get('generation') == 'generation_partial')
+        saved = report, job
     base, job = saved
     analysis, state = summarize(job)
-    return dict(report, status=base['status'], research_quality=base.get('research_quality'),
+    return dict(report, status=base['status'] if old_gap in quality.get('core_gaps', []) else report['status'],
+                research_quality=base.get('research_quality') if old_gap in quality.get('core_gaps', []) else quality,
                 investment_analysis=analysis.model_dump(mode='json'),
-                investment_review=state.model_dump(mode='json'))
+                investment_review=state.model_dump(mode='json'), investment_narrative=investment_article(job))
 
 
 def _review_report(task_id, base, job, limits):
@@ -229,7 +250,8 @@ def _recover_investment_reviews():
 
 
 def _run(task_id: str, request: ResearchRequest, inputs: tuple[Report, ...] = ()) -> None:
-    limits = ResearchLimits()
+    limits = ResearchLimits(max_search_rounds=0, max_search_queries=0,
+                            request_timeout_seconds=0, max_model_calls=0)
     jobs = []
     partial_report = None
 
@@ -270,6 +292,7 @@ def _run(task_id: str, request: ResearchRequest, inputs: tuple[Report, ...] = ()
             save_task(_tasks[task_id])
 
     try:
+        limits = ResearchLimits()
         cutoff = request.as_of_date.isoformat() if request.as_of_date else None
         if _live_enabled:
             diagnostic = model_diagnostic_sink.set(
@@ -322,6 +345,8 @@ def _run(task_id: str, request: ResearchRequest, inputs: tuple[Report, ...] = ()
                     finish_review(task_id)
                 except (OSError, sqlite3.Error):
                     logging.getLogger(__name__).warning('Investment review completion marker could not be saved')
+    except InvalidResearchConfiguration as exc:
+        fail('INVALID_RESEARCH_CONFIGURATION', str(exc))
     except CompanyUnresolved:
         fail('COMPANY_UNRESOLVED', 'Specify a company name, ticker or filing identifier')
     except ResourceLimitReached:

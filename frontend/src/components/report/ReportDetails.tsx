@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import type { Metric, Report, ResearchUsage, Source } from '../../types/api'
+import type { InvestmentAnalysis, Metric, Report, ResearchUsage, Source } from '../../types/api'
 import { capexScopeLabel, reportPeriod } from '../../lib/metrics'
 import { formatValue } from '../../lib/format'
 
@@ -25,6 +25,13 @@ const topicLabels: Record<string, string> = {
 
 const readable = (value: string) => value.replaceAll('_', ' ')
 
+function PointQualification({ report, point }: { report: Report; point: InvestmentAnalysis['points'][number] }) {
+  const section = report.investment_narrative?.sections.find((item) =>
+    item.topic === point.topic && item.text === point.text)
+  if (!section || !['partially_supported', 'needs_qualification'].includes(section.review_verdict)) return null
+  return <p className="text-sm text-fog-300">Qualified model assessment · {section.suggested_revision || section.review_reason}</p>
+}
+
 export function ReportDisclosure({ title, children, initiallyOpen = false }:
   { title: string; children: ReactNode; initiallyOpen?: boolean }) {
   const [open, setOpen] = useState(initiallyOpen)
@@ -47,13 +54,18 @@ export function InvestmentHeadline({ report }: { report: Report }) {
   if (!comparative && !hasDirection && !primary) return null
   return <section className="panel space-y-3 border-l-2 border-l-signal-500 p-5" aria-label="Investment analysis">
     <h2 className="text-sm font-semibold text-fog-400">{comparative ? 'Comparative assessment' : 'Investment View'}</h2>
+    {report.investment_review?.opinion === 'provisional' &&
+      <p className="text-xs text-fog-400">Provisional view · Review is incomplete or the view requires qualification.</p>}
     {!comparative && <p className="text-2xl font-semibold text-fog-100">{hasDirection ? stanceLabels[view.stance] : 'Conditional outlook'}</p>}
     {comparative && primary && <p className="leading-relaxed text-fog-100">{primary.text}</p>}
     {view.observation_reason && <p className="leading-relaxed text-fog-100">{view.observation_reason}</p>}
     {!comparative && primary && <p className="leading-relaxed text-fog-100">{primary.text}</p>}
+    {primary && <PointQualification report={report} point={primary} />}
     {comparative && !primary && <p className="text-sm text-fog-400">The comparative answer could not be generated. The financial findings are available below.</p>}
     {risk && <p className="text-sm text-fog-300"><strong>Key risk</strong> · {risk.text}</p>}
+    {risk && <PointQualification report={report} point={risk} />}
     {trigger && <p className="text-sm text-fog-300"><strong>What would change the view</strong> · {trigger.text}</p>}
+    {trigger && <PointQualification report={report} point={trigger} />}
     {view.missing_inputs[0] && <p className="text-sm text-fog-400">{view.missing_inputs[0].replace(/\s*\((?:web|sec_xbrl|sec_statement):[a-z0-9]+\)/gi, '')}</p>}
   </section>
 }
@@ -72,6 +84,8 @@ export function InvestmentArticle({ report }: { report: Report }) {
   const sources = new Map(report.sources.map((source) => [source.source_id, source]))
   const sections = report.investment_narrative?.sections.filter((section) =>
     section.review_verdict === 'supported' ||
+    (['partially_supported', 'needs_qualification'].includes(section.review_verdict) &&
+      Boolean(section.suggested_revision || section.review_reason) && section.evidence_ids.length > 0) ||
     (section.review_verdict === 'pending' && section.evidence_ids.length > 0 &&
       section.evidence_ids.every((id) => sources.has(id)))
   ) ?? []
@@ -81,7 +95,10 @@ export function InvestmentArticle({ report }: { report: Report }) {
       {sections.map((section, index) => (
         <section key={index} className="space-y-1">
           <h3 className="font-semibold text-fog-200">{topicLabels[section.topic] ?? readable(section.topic)}</h3>
-          {section.review_verdict !== 'supported' && <p className="text-xs text-fog-400">The cited premises still need confirmation.</p>}
+          {['partially_supported', 'needs_qualification'].includes(section.review_verdict) &&
+            <p className="text-sm text-fog-300">{['bull_case', 'base_case', 'bear_case'].includes(section.topic)
+              ? 'Scenario assumptions' : 'Qualified model assessment'} · {section.suggested_revision || section.review_reason}</p>}
+          {section.review_verdict === 'pending' && <p className="text-xs text-fog-400">The cited premises still need confirmation.</p>}
           <p className="whitespace-pre-line leading-relaxed text-fog-100">{section.text}</p>
           <ul className="text-xs text-fog-400" aria-label="Paragraph citations">
             {[...new Set(section.evidence_ids)].map((id) => {
@@ -106,6 +123,7 @@ export function InvestmentDetail({ report }: { report: Report }) {
       <h3 className="font-semibold capitalize">{point.topic === 'key_factor' ? `Key factor ${++rank}`
         : topicLabels[point.topic] ?? readable(point.topic)}</h3>
       <p className="text-sm leading-relaxed text-fog-200">{point.text}</p>
+      <PointQualification report={report} point={point} />
       <ul className="space-y-1 text-xs">{point.evidence_ids.map((id) => {
         const source = sources.get(id)
         return source ? <li key={id}><Citation source={source} /></li> : null
