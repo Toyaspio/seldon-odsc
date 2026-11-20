@@ -85,4 +85,4 @@ Open the investment view first, then follow its sources, explore the news and cl
 
 ## Demo
 
-Video coming soon. See [Demo](DEMO.md) for the walkthrough.
+[Watch the demo on YouTube](https://youtu.be/sqiy0_Lg_g8) (2 min 55 sec). It follows a live NVIDIA research question through provider activity, SEC evidence, and an investment view with explicit evidence gaps. See [Demo](DEMO.md) for the chapter guide.
